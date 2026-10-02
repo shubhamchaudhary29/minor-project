@@ -1,0 +1,30 @@
+[
+  {
+    "dataset_label": "Mandated (CHEMBL5542)",
+    "raw_bioactivities_count": 21721,
+    "tier_a_biochemical_count": 50,
+    "unique_chemical_structures": 48,
+    "labeled_compounds_outside_gray": 42,
+    "active_compounds": 2,
+    "inactive_compounds": 40,
+    "gray_zone_compounds": 6,
+    "total_unique_scaffolds": 16,
+    "scaffolds_ge_3_compounds": 2,
+    "gate1_verdict": "FAIL / PIVOT",
+    "reason": "Unique scaffolds 16 < 30 required; Scaffolds with >= 3 compounds 2 < 10 required"
+  },
+  {
+    "dataset_label": "True DprE1 (CHEMBL3804751)",
+    "raw_bioactivities_count": 306,
+    "tier_a_biochemical_count": 159,
+    "unique_chemical_structures": 147,
+    "labeled_compounds_outside_gray": 102,
+    "active_compounds": 74,
+    "inactive_compounds": 28,
+    "gray_zone_compounds": 45,
+    "total_unique_scaffolds": 45,
+    "scaffolds_ge_3_compounds": 6,
+    "gate1_verdict": "FAIL / PIVOT",
+    "reason": "Scaffolds with >= 3 compounds 6 < 10 required"
+  }
+]
