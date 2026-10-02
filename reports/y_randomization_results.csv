@@ -1,0 +1,21 @@
+iteration,model_name,roc_auc,pr_auc
+1,Logistic Regression,0.5574,0.7786
+2,Logistic Regression,0.4341,0.6984
+3,Logistic Regression,0.5372,0.7485
+4,Logistic Regression,0.4988,0.7452
+5,Logistic Regression,0.5516,0.7646
+6,Logistic Regression,0.5372,0.7353
+7,Logistic Regression,0.5671,0.7982
+8,Logistic Regression,0.5763,0.8085
+9,Logistic Regression,0.5765,0.7723
+10,Logistic Regression,0.3731,0.6498
+1,Random Forest,0.556,0.8139
+2,Random Forest,0.4245,0.7042
+3,Random Forest,0.4653,0.7384
+4,Random Forest,0.5046,0.7226
+5,Random Forest,0.5555,0.7936
+6,Random Forest,0.5483,0.7519
+7,Random Forest,0.5396,0.7494
+8,Random Forest,0.5656,0.7919
+9,Random Forest,0.589,0.7918
+10,Random Forest,0.4797,0.7385
