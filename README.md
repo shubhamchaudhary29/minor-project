@@ -102,19 +102,25 @@ python src/audit_covalent.py
 # 4. Resolve hydantoin dominance with Butina cluster-aware partitioning
 python src/analyze_hydantoins.py
 
-# 5. Verify all 22 literature DOIs live against CrossRef
+# 5. Verify all literature DOIs live against CrossRef
 python src/verify_dois.py
 
 # 6. Execute Gate 1 curation funnel
 python src/gate1_funnel.py
+
+# 7. Generate stratified cluster folds (>=3 inactives/fold, zero cluster leakage)
+python src/splits.py
+
+# 8. Execute Phase 2 benchmark models (Tracks A, B, C with 1000 BCa bootstrap CIs)
+python src/models.py
 ```
 
 ---
 
-## 5. Phase 1.5 Audit & Ground Truth Summary
+## 5. Phase 1.5 & Phase 2 Ground Truth Summary
 
 ### Gate 1 Funnel Metrics (Target: `CHEMBL3804751`)
-- **Total Raw Bioactivities**: 306 records
+- **Total Raw Bioactivities**: 306 records (complete curated single-protein biochemical corpus available within ChEMBL)
 - **Tier A Biochemical ($IC_{50}/K_i$)**: 159 records
 - **Sanitized Unique Structures**: 147 compounds
 - **Active ($pIC_{50} \ge 6.0$, $\le 1\,\mu\text{M}$)**: 74 compounds
@@ -123,14 +129,17 @@ python src/gate1_funnel.py
 - **Primary Labeled Benchmark Set**: **102 compounds**
 
 ### Covalent vs. Non-Covalent Docking Sample Size
-- **Non-Covalent Evaluation Set**: **93 molecules** (67 Active, 26 Inactive) $\rightarrow$ **True primary docking sample size**.
-- **Covalent Subset**: **9 molecules** (7 Active, 2 Inactive) $\rightarrow$ Evaluated in separate pre-reaction proximity track.
+- **Total Labeled Benchmark Set**: **102 compounds** (74 active, 28 inactive)
+- **Nitro-Aromatic Warhead (Predicted Covalent)**: **9 compounds** (7 active, 2 inactive) $\rightarrow$ Pre-reaction proximity track
+- **Non-Covalent Docking Set**: **93 compounds** (67 active, 26 inactive) $\rightarrow$ **True primary docking sample size**
+- **Non-Covalent, Non-Hydantoin Subset**: **43 compounds** (25 active, 18 inactive) $\rightarrow$ Scaffold-diversified non-congeneric subset
 
-### Pocket Centroid Coordinates (PDB `4P8K`, Ligand `38C (CT325)`)
+### Pocket Centroid Coordinates (PDB `4P8K`, 2.49 Å resolution)
+- **Co-crystal Ligand**: **`Ty38c (PDB ID: 38C / CT325)`**
 - **Center**: $X = 17.07$, $Y = -20.26$, $Z = 1.49$ Å
 - **Box Size**: $22.0 \times 22.0 \times 22.0$ Å (`docking/configs/vina_4P8K.txt`)
 - **Catalytic Proximity**: $5.7$ Å from Cys387 S$\gamma$, $4.2$ Å from FAD N5.
 
 ### Literature Audit Verification
-- **Total Publications**: 22 papers across 3 buckets.
-- **CrossRef Verification**: **22/22 DOIs verified with HTTP 200 OK** (`reports/DprE1_Literature_Audit_verified.csv`).
+- **Total Publications**: 26 papers across 3 buckets (including 4 competitor benchmark papers).
+- **CrossRef Verification**: **26/26 DOIs verified with HTTP 200 OK** (`reports/DprE1_Literature_Audit_verified.csv`).

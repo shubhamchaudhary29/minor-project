@@ -15,7 +15,7 @@
   - **Status**: Live / Verified
 - **RCSB Protein Data Bank (PDB)**: Queried live via RCSB PDB Search API v2 and Data API v1.
   - **Audit Snapshot**: October 2026
-  - **Receptor Structure**: PDB **`4P8K`** (Non-covalent complex with ligand `38C (CT325)`, 2.25 Å resolution)
+  - **Receptor Structure**: PDB **`4P8K`** (Non-covalent complex with ligand **`Ty38c (38C/CT325)`**, 2.49 Å resolution)
 
 ---
 
@@ -41,7 +41,7 @@ RDKit Sanitization & Salt Stripping (Largest Organic Fragment): 147 unique compo
 
 | Pipeline Stage | Compound Count | Percentage of Corpus | Notes |
 | :--- | :--- | :--- | :--- |
-| **Total Raw ChEMBL Records** | 306 | 100.0% | Complete verified biochemical corpus |
+| **Total Raw ChEMBL Records** | 306 | 100.0% | Complete curated single-protein biochemical corpus available within ChEMBL |
 | **Tier A Bioactivities ($IC_{50}/K_i$)** | 159 | 52.0% | Assays with quantitative potency endpoints |
 | **Sanitized Unique Structures** | 147 | 48.0% | Canonical SMILES after salt stripping |
 | **Active Compounds ($pIC_{50} \ge 6.0$)** | 74 | 24.2% | $\le 1\,\mu\text{M}$ potency |
@@ -57,7 +57,7 @@ RDKit Sanitization & Salt Stripping (Largest Organic Fragment): 147 unique compo
 
 Compounds were audited for covalent suicide-inhibitor warheads (nitro-aromatic core `c[N+](=O)[O-]` and 1,3-benzothiazin-4-one core `c1c([N+](=O)[O-])cc2c(c1)C(=O)NCS2`):
 
-| Activity Category | Non-Covalent | Covalent | Total | Benchmark Track |
+| Activity Category | Non-Covalent | Nitro-Aromatic Warhead (Covalent) | Total | Benchmark Track |
 | :--- | :--- | :--- | :--- | :--- |
 | **Active ($pIC_{50} \ge 6.0$)** | 67 | 7 | 74 | Labeled Set |
 | **Inactive ($pIC_{50} < 5.0$)** | 26 | 2 | 28 | Labeled Set |
@@ -65,16 +65,19 @@ Compounds were audited for covalent suicide-inhibitor warheads (nitro-aromatic c
 | **Gray Zone ($5.0 \le pIC_{50} < 6.0$)** | 36 | 9 | 45 | Held-out Set |
 | **Total Dataset** | **129** | **18** | **147** | Full Curated Corpus |
 
-> [!IMPORTANT]
-> **Primary Docking Benchmark Sample Size**: Exactly **93 non-covalent labeled molecules** (67 active, 26 inactive) are eligible for quantitative AutoDock Vina rigid docking. The 9 covalent suicide-inhibitors are evaluated in a separate pre-reaction proximity track.
+### Benchmark Sample Size Breakdown
+- **Total Labeled Set**: **102 compounds** (74 active, 28 inactive)
+- **Nitro-Aromatic Warhead (Predicted Covalent)**: **9 compounds** (7 active, 2 inactive)
+- **Non-Covalent Docking Set**: **93 compounds** (67 active, 26 inactive) $\rightarrow$ *Primary docking benchmark sample size*
+- **Non-Covalent, Non-Hydantoin Subset**: **43 compounds** (25 active, 18 inactive) $\rightarrow$ *Rigorous cross-scaffold subset*
 
 ---
 
 ## 4. Structural Receptor Catalog & Pocket Center
 
-- **Selected Structure**: PDB `4P8K` (Chain A, 2.25–2.49 Å resolution)
+- **Selected Structure**: PDB `4P8K` (Chain A, 2.49 Å resolution)
 - **Catalytic Cofactor**: FAD is retained in the active site with partial charges assigned at pH 7.4.
-- **Reference Ligand**: `38C (CT325)` in Chain A (27 heavy atoms)
+- **Reference Ligand**: **`Ty38c (38C/CT325)`** in Chain A (27 heavy atoms)
 - **Calculated Centroid**:
   $$\mathbf{C} = (17.07, -20.26, 1.49)\,\text{Å}$$
 - **Vina Search Box**: $22.0 \times 22.0 \times 22.0$ Å centered on `(17.07, -20.26, 1.49)` Å (`docking/configs/vina_4P8K.txt`).

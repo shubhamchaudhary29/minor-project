@@ -1,13 +1,13 @@
 # Experimental Benchmark Protocol: DprE1 Structure-Based Docking vs. Ligand-Based Machine Learning
 
 **Project Title**: *Does Structure-Based Docking Add Predictive Value Over Ligand-Based Machine Learning for Prioritizing DprE1 Inhibitors? A Reproducible Benchmark Under Scaffold-Split Evaluation*  
-**Protocol Version**: 1.1.0-frozen (Phase 1.5 Remediation Release)  
+**Protocol Version**: 1.1.1-frozen (Phase 2 Benchmark Launch Release)  
 **Date**: October 2, 2026  
 **Auditor**: Senior Computational Chemist & Research Software Engineer  
 
 ---
 
-## Protocol Deviation & Remediation Log (v1.1)
+## Protocol Deviation & Remediation Log (v1.1.1)
 
 | Deviation ID | Component | Description of Change & Scientific Rationale |
 | :--- | :--- | :--- |
@@ -15,7 +15,11 @@
 | **DEV-02** | Statistical Significance | Forbidden fold-level Wilcoxon signed-rank tests due to cross-validation fold dependence. Mandated **1,000-iteration compound-level and cluster-level bootstrap resampling** with 95% bias-corrected and accelerated (BCa) confidence intervals. |
 | **DEV-03** | Gate 1 Reformulation | Replaced arbitrary raw scaffold threshold with **Chemotype Balance & Cluster Analysis**. Identified single-paper hydantoin chemotype dominance (34 compounds, 33.3% of labeled set). Strictly retained separation between Tier A (biochemical $IC_{50}$) and Tier B (whole-cell MIC); forbidden data pooling. |
 | **DEV-04** | Covalent Docking Partition | Formally partitioned benchmark into: (1) **Non-Covalent Evaluation Set** ($N=93$ labeled molecules: 67 actives, 26 inactives) scored quantitatively by AutoDock Vina, and (2) **Covalent Nitro-Aromatic Set** ($N=9$ labeled molecules: 7 actives, 2 inactives) analyzed exclusively for pre-reaction pocket proximity. |
-| **DEV-05** | Receptor & Grid Coordinates | Programmatically computed exact active-site centroid from co-crystallized ligand **`38C (CT325)`** in PDB `4P8K` Chain A: `(17.07, -20.26, 1.49)` Å with bounding box $22.0 \times 22.0 \times 22.0$ Å. |
+| **DEV-05** | Fold Rebalancing | Shifted from unconstrained Murcko folds to Stratified Cluster GroupKFold (Butina ECFP4 distance $0.55$) with an explicit constraint guaranteeing at least 3 measured inactives per fold across 5 folds. |
+| **DEV-06** | Metric Calculation | Primary PR-AUC and ROC-AUC are evaluated on **Pooled Out-Of-Fold (OOF)** predictions resampled via 1,000-iteration bootstrap (95% BCa CIs) to prevent single-class fold artifacts. |
+| **DEV-07** | Baseline Expansion & LHO | Added the `HydantoinDetectorClassifier` baseline and promoted **Leave-Hydantoin-Out (LHO)** as the headline generalization experiment. |
+| **DEV-08** | Warhead Terminology | Renamed covalent classification to `nitro_aromatic_warhead` (predicted covalent mechanism via FAD nitro-reduction). |
+| **DEV-09** | Receptor & Grid Coordinates | Programmatically computed exact active-site centroid from co-crystallized ligand **`Ty38c (PDB ID: 38C / CT325)`** in PDB `4P8K` Chain A: `(17.07, -20.26, 1.49)` Å with bounding box $22.0 \times 22.0 \times 22.0$ Å at 2.49 Å resolution. |
 
 ---
 
@@ -26,7 +30,8 @@ The primary objective of this benchmark is to rigorously determine whether struc
 ### Core Benchmark Axioms
 1. **Strict Tier Separation (No Data Pooling)**: Tier A (biochemical enzyme inhibition $IC_{50}$) and Tier B (whole-cell phenotypic *M. tuberculosis* MIC) measure fundamentally distinct biophysical phenomena. Whole-cell MIC is confounded by cell-wall permeability, efflux pump liability (e.g., MmpL5), and intracellular metabolism. Tier A and Tier B data must never be pooled to artificially inflate dataset size.
 2. **Measured Negatives First**: The primary benchmark evaluates models against experimentally measured biochemical inactives ($pIC_{50} < 5.0$). Property-matched in silico decoys (DeepCoy / DUD-E criteria) are evaluated strictly as a secondary experiment (Experiment B).
-3. **Rigorous Statistical Comparison**: Differences in PR-AUC and ROC-AUC are evaluated using 1,000-iteration compound-level and cluster-level bootstrapping, generating 95% BCa confidence intervals.
+3. **Rigorous Statistical Comparison**: Differences in PR-AUC and ROC-AUC are evaluated using 1,000-iteration compound-level and cluster-level bootstrapping, generating 95% BCa confidence intervals on Pooled Out-Of-Fold (OOF) predictions.
+4. **Conservative Data Scope**: Evaluated on the small-data biochemical corpus ($N=102$) from ChEMBL3804751; negative or statistically indistinguishable results between ML and docking are considered valid findings.
 
 ---
 
@@ -44,10 +49,10 @@ The primary objective of this benchmark is to rigorously determine whether struc
 - **Cofactor Rule**: Under no circumstances should FAD be deleted or stripped during receptor grid generation or docking preparation. FAD coordinates must remain present and parameterized with partial charges at physiological pH 7.4.
 
 ### 2.3 Mechanistic Divergence & Ligand Classification
-- **Covalent Suicide-Inhibitors**: Nitro-aromatic compounds (e.g., BTZ043, PBTZ169 / macozinone) undergo FAD-catalyzed reduction of the aromatic nitro group to a nitroso intermediate, followed by nucleophilic attack from the thiol of Cys387, forming a stable covalent semimercaptal adduct. Standard rigid docking scoring functions (Vina) cannot model covalent bond enthalpy; these molecules are audited separately.
+- **Covalent Suicide-Inhibitors**: Nitro-aromatic compounds (e.g., BTZ043, PBTZ169 / macozinone) undergo FAD-catalyzed reduction of the aromatic nitro group to a nitroso intermediate, followed by nucleophilic attack from the thiol of Cys387, forming a stable covalent semimercaptal adduct. Standard rigid docking scoring functions (Vina) cannot model covalent bond enthalpy; these molecules are audited separately under `nitro_aromatic_warhead`.
 - **Non-Covalent Inhibitors**: Quinoxalines, pyrroles, 1,4-azaindoles, and hydantoins bind reversibly within the pocket adjacent to FAD without adducting Cys387.
-- **Reference Receptor Complex**: **PDB `4P8K`** (Chain A, 2.25 Å resolution).
-- **Reference Co-crystal Ligand**: Chemical component code **`38C`**, named **`CT325`** in medicinal chemistry literature. Documented as **`38C (CT325)`**.
+- **Reference Receptor Complex**: **PDB `4P8K`** (Chain A, 2.49 Å resolution).
+- **Reference Co-crystal Ligand**: **`Ty38c (PDB ID: 38C / CT325)`** (2-carboxyquinoxaline series).
 
 ---
 
@@ -75,16 +80,18 @@ RDKit Sanitization & Salt Stripping (Largest Organic Fragment): 147 unique compo
 - **Gray Zone**: 45 compounds ($5.0 \le pIC_{50} < 6.0$, held out from primary classification)
 
 ### Docking Substructure Breakdown
-- **Non-Covalent Evaluation Set**: **93 molecules** (67 Actives, 26 Inactives) $\rightarrow$ *Primary docking benchmark sample size*.
-- **Covalent Nitro-Aromatic Set**: **9 molecules** (7 Actives, 2 Inactives) $\rightarrow$ *Pre-reaction proximity evaluation track*.
+- **Total Labeled Benchmark Set**: **102 compounds** (74 Active, 28 Inactive)
+- **Nitro-Aromatic Warhead (Predicted Covalent)**: **9 compounds** (7 Active, 2 Inactive) $\rightarrow$ *Pre-reaction proximity evaluation track*
+- **Non-Covalent Docking Set**: **93 compounds** (67 Active, 26 Inactive) $\rightarrow$ *Primary docking benchmark sample size*
+- **Non-Covalent, Non-Hydantoin Subset**: **43 compounds** (25 Active, 18 Inactive) $\rightarrow$ *Scaffold-diversified non-congeneric subset*
 
 ---
 
 ## 4. Receptor Preparation & Verified Grid Configuration
 
 ### 4.1 Receptor Coordinates & Pocket Centroid
-- **Receptor Structure**: PDB `4P8K` (Chain A). Water molecules and crystallographic buffer ions stripped; non-covalent cofactor `FAD` retained.
-- **Centroid Calculation**: Programmatically calculated as the geometric mean of all 27 heavy atoms of ligand `38C (CT325)` in Chain A:
+- **Receptor Structure**: PDB `4P8K` (Chain A, 2.49 Å resolution). Water molecules and crystallographic buffer ions stripped; non-covalent cofactor `FAD` retained.
+- **Centroid Calculation**: Programmatically calculated as the geometric mean of all 27 heavy atoms of co-crystallized ligand **`Ty38c (PDB ID: 38C / CT325)`** in Chain A:
   $$\mathbf{C} = \frac{1}{N}\sum_{i=1}^N \mathbf{r}_i = (17.07, -20.26, 1.49)\,\text{Å}$$
 - **Proximity to Key Catalytic Residues**:
   - Distance to Cys387 S$\gamma$ ($12.56, -17.59, -0.83$ Å): $\approx 5.7$ Å.
