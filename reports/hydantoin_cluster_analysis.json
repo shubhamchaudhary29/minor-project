@@ -1,0 +1,30 @@
+{
+  "total_labeled_compounds": 102,
+  "dominant_scaffold": "O=C(CN1C(=O)NC(c2ccccc2)C1=O)c1ccccc1",
+  "dominant_scaffold_count": 34,
+  "hydantoin_substructure_matches": 51,
+  "naive_groupkfold_sizes": [
+    34,
+    17,
+    17,
+    17,
+    17
+  ],
+  "butina_cluster_count": 14,
+  "balanced_cluster_fold_sizes": [
+    48,
+    15,
+    13,
+    13,
+    13
+  ],
+  "balanced_cluster_fold_actives": [
+    40,
+    8,
+    7,
+    13,
+    6
+  ],
+  "lho_non_hydantoin_count": 51,
+  "lho_hydantoin_count": 51
+}

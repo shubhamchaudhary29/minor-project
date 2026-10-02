@@ -1,0 +1,16 @@
+[
+  {
+    "dataset_label": "Verified DprE1 (CHEMBL3804751)",
+    "raw_bioactivities_count": 306,
+    "tier_a_biochemical_count": 159,
+    "unique_chemical_structures": 147,
+    "labeled_compounds_outside_gray": 102,
+    "active_compounds": 74,
+    "inactive_compounds": 28,
+    "gray_zone_compounds": 45,
+    "total_unique_scaffolds": 45,
+    "scaffolds_ge_3_compounds": 6,
+    "gate1_verdict": "REFORMULATED / CLUSTER-SPLIT",
+    "reason": "Unique scaffolds 45 >= 30 (Satisfied); Scaffolds with >= 3 compounds is 6 (< 10 threshold, driven by single hydantoin series dominance)"
+  }
+]

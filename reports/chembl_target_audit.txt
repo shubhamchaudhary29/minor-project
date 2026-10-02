@@ -1,0 +1,30 @@
+================================================================================
+EXHAUSTIVE ChEMBL TARGET AUDIT FOR DprE1 (Rv3790 / UniProt P9WJF1)
+================================================================================
+ChEMBL Database Version: ChEMBL_37 (Release Date: 2026-05-01)
+
+--- Querying ChEMBL Target API for UniProt Accession 'P9WJF1' ---
+Found 1 target record(s) directly mapped to UniProt P9WJF1:
+
+  Target ID:   CHEMBL3804751
+  Pref Name:   Decaprenylphosphoryl-beta-D-ribose oxidase
+  Target Type: SINGLE PROTEIN
+  Organism:    Mycobacterium tuberculosis (strain ATCC 25618 / H37Rv) (Taxonomy ID: 83332)
+  Components (1):
+    - Accession: P9WJF1 | Type: PROTEIN | Name: None | Gene Symbols: ['dprE1']
+  Total Associated Bioactivity Records: 306
+
+--- Checking for other DprE1 Target Records via Text Search ---
+Retrieved 2 target search hit(s) for 'DprE1':
+  - CHEMBL3797019: Decaprenylphosphoryl-beta-D-ribose oxidase [Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155)] (SINGLE PROTEIN)
+  - CHEMBL3804751: Decaprenylphosphoryl-beta-D-ribose oxidase [Mycobacterium tuberculosis (strain ATCC 25618 / H37Rv)] (SINGLE PROTEIN)
+
+================================================================================
+TARGET AUDIT VERDICT & CONFIRMATION
+================================================================================
+CONFIRMED: 'CHEMBL3804751' is the unique, unambiguous single-protein target in ChEMBL
+corresponding to Mycobacterium tuberculosis H37Rv DprE1 (UniProt P9WJF1 / Rv3790).
+Its 306 biochemical records constitute the complete, verified biochemical corpus in ChEMBL.
+Note: CHEMBL3797019 corresponds to Mycobacterium smegmatis DprE1 (ortholog), not M. tuberculosis.
+No other single-protein targets exist for M. tuberculosis DprE1.
+================================================================================

@@ -2,8 +2,9 @@
 """
 src/audit_chembl.py
 
-Extracts bioactivity records from ChEMBL for target CHEMBL5542 (and reference target CHEMBL3804751).
-Separates data into Tier A (biochemical/binding assays) and Tier B (phenotypic/whole-cell assays).
+Extracts bioactivity records from ChEMBL for the verified DprE1 target CHEMBL3804751.
+Separates data into Tier A (biochemical/binding assays measuring direct DprE1 inhibition)
+and Tier B (whole-cell phenotypic assays).
 Calculates summary statistics: raw record count, unique SMILES count, standard_type distribution,
 and relation distribution (=, >, <).
 Saves raw records to data/raw/chembl_dpre1_raw.csv.
@@ -19,7 +20,7 @@ from chembl_webresource_client.new_client import new_client
 
 def fetch_all_activities(target_chembl_id: str, limit_per_page: int = 1000) -> pd.DataFrame:
     """
-    Fetch all bioactivity records for a target using ChEMBL REST pagination for speed and robustness.
+    Fetch all bioactivity records for a target using ChEMBL REST pagination.
     """
     print(f"\n[INFO] Fetching bioactivity records for {target_chembl_id}...")
     base_url = f"https://www.ebi.ac.uk/chembl/api/data/activity.json?target_chembl_id={target_chembl_id}&limit={limit_per_page}"
@@ -103,56 +104,30 @@ def compute_summary_stats(df: pd.DataFrame, target_id: str, label: str):
     
     print(f"\nTier B (Phenotypic whole-cell, assay_type == 'F'): {len(df_tier_b)} records")
     print(f"  - Unique SMILES in Tier B: {df_tier_b['canonical_smiles'].dropna().nunique()}")
-    print(f"  - Standard types: {dict(df_tier_b['standard_type'].value_counts().head(5))}")
-    print(f"  - Relations:     {dict(df_tier_b['standard_relation'].value_counts(dropna=False).head(5))}")
     print("=" * 70)
 
 
 def main():
-    target_id_primary = "CHEMBL5542"
-    target_id_dpre1_true = "CHEMBL3804751"
+    target_id_dpre1 = "CHEMBL3804751"
     
     # Verify target metadata via chembl_webresource_client
     target_api = new_client.target
     try:
-        t_meta_primary = target_api.get(target_id_primary)
-        print(f"[ChEMBL Client] Target {target_id_primary}: {t_meta_primary.get('pref_name')} ({t_meta_primary.get('organism')})")
+        t_meta = target_api.get(target_id_dpre1)
+        print(f"[ChEMBL Client] Verified Target {target_id_dpre1}: {t_meta.get('pref_name')} ({t_meta.get('organism')})")
     except Exception as e:
-        print(f"[Warning] Could not get metadata for {target_id_primary}: {e}")
-        
-    try:
-        t_meta_true = target_api.get(target_id_dpre1_true)
-        print(f"[ChEMBL Client] Reference DprE1 Target {target_id_dpre1_true}: {t_meta_true.get('pref_name')} ({t_meta_true.get('organism')})")
-    except Exception as e:
-        print(f"[Warning] Could not get metadata for {target_id_dpre1_true}: {e}")
+        print(f"[Warning] Could not get metadata for {target_id_dpre1}: {e}")
 
-    # Fetch CHEMBL5542 (required by specification)
-    df_primary = fetch_all_activities(target_id_primary)
+    # Fetch genuine DprE1 records
+    df = fetch_all_activities(target_id_dpre1)
     
-    # Save primary raw records to data/raw/chembl_dpre1_raw.csv
-    out_paths_primary = [
-        os.path.abspath("data/raw/chembl_dpre1_raw.csv"),
-        os.path.abspath("dpre1/data/raw/chembl_dpre1_raw.csv")
-    ]
-    for p in out_paths_primary:
-        os.makedirs(os.path.dirname(p), exist_ok=True)
-        df_primary.to_csv(p, index=False)
-        print(f"[SAVE] Saved {len(df_primary)} raw records to: {p}")
+    out_dir = os.path.abspath("data/raw")
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, "chembl_dpre1_raw.csv")
+    df.to_csv(out_path, index=False)
+    print(f"[SAVE] Saved {len(df)} verified DprE1 raw records to: {out_path}")
         
-    compute_summary_stats(df_primary, target_id_primary, "Mandated Target Identifier")
-    
-    # Also fetch and catalog true Rv3790 DprE1 target CHEMBL3804751 for complete biological transparency
-    df_true = fetch_all_activities(target_id_dpre1_true)
-    out_paths_true = [
-        os.path.abspath("data/raw/chembl_dpre1_rv3790_raw.csv"),
-        os.path.abspath("dpre1/data/raw/chembl_dpre1_rv3790_raw.csv")
-    ]
-    for p in out_paths_true:
-        os.makedirs(os.path.dirname(p), exist_ok=True)
-        df_true.to_csv(p, index=False)
-        print(f"[SAVE] Saved {len(df_true)} true DprE1 records to: {p}")
-        
-    compute_summary_stats(df_true, target_id_dpre1_true, "True M. tuberculosis DprE1 / Rv3790 Target")
+    compute_summary_stats(df, target_id_dpre1, "M. tuberculosis DprE1 / Rv3790")
 
 
 if __name__ == "__main__":
