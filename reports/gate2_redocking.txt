@@ -1,0 +1,14 @@
+================================================================================
+GATE 2 REDOCKING VALIDATION REPORT
+================================================================================
+Receptor Structure:         PDB 4P8K (Chain A, 2.49 A resolution)
+Essential Cofactor:         FAD (Retained & rigid in active site)
+Reference Ligand:           Ty38c (PDB ID: 38C / CT325)
+Ligand Formula:             C18 H14 F3 N3 O3 (27 heavy atoms)
+Active Site Grid Centroid:  X=17.07, Y=-20.26, Z=1.49 A
+Search Box Dimensions:      X=22.0, Y=22.0, Z=22.0 A
+Top Vina Binding Affinity:  -8.873 kcal/mol
+Top Heavy-Atom RMSD:        1.282 A
+Gate 2 Threshold:           RMSD < 2.0 A
+Gate 2 Decision:            PASS
+================================================================================
