@@ -1,0 +1,27 @@
+analysis_type,subgroup,n_samples,n_actives,n_inactives,method,roc_auc,pr_auc
+MW Stratification,Low MW (<400 Da),35,22,13,AutoDock Vina (Raw Affinity),0.7797,0.8845
+MW Stratification,Low MW (<400 Da),35,22,13,AutoDock Vina (Ligand Efficiency),0.4108,0.6076
+MW Stratification,Low MW (<400 Da),35,22,13,Random Forest (Cluster OOF),0.6399,0.715
+MW Stratification,Low MW (<400 Da),35,22,13,Random Forest (LHO),0.6014,0.7951
+MW Stratification,Low MW (<400 Da),35,22,13,"RRF (RF + Vina, Cluster)",0.8566,0.8633
+MW Stratification,Low MW (<400 Da),35,22,13,"RRF (RF + Vina, LHO)",0.6888,0.8452
+MW Stratification,Low MW (<400 Da),35,22,13,"RRF (RF + LE, Cluster)",0.514,0.6257
+MW Stratification,High MW (>=400 Da),58,45,13,AutoDock Vina (Raw Affinity),0.4137,0.7294
+MW Stratification,High MW (>=400 Da),58,45,13,AutoDock Vina (Ligand Efficiency),0.6573,0.8036
+MW Stratification,High MW (>=400 Da),58,45,13,Random Forest (Cluster OOF),0.6991,0.872
+MW Stratification,High MW (>=400 Da),58,45,13,Random Forest (LHO),0.341,0.7211
+MW Stratification,High MW (>=400 Da),58,45,13,"RRF (RF + Vina, Cluster)",0.5709,0.8115
+MW Stratification,High MW (>=400 Da),58,45,13,"RRF (RF + Vina, LHO)",0.3726,0.7163
+MW Stratification,High MW (>=400 Da),58,45,13,"RRF (RF + LE, Cluster)",0.7197,0.8952
+Applicability Domain,"Low Similarity (<0.40, Out-of-Domain)",22,14,8,AutoDock Vina (Raw Affinity),0.5536,0.6419
+Applicability Domain,"Low Similarity (<0.40, Out-of-Domain)",22,14,8,AutoDock Vina (Ligand Efficiency),0.6071,0.7697
+Applicability Domain,"Low Similarity (<0.40, Out-of-Domain)",22,14,8,Random Forest (Cluster OOF),0.5804,0.7132
+Applicability Domain,"Low Similarity (<0.40, Out-of-Domain)",22,14,8,Random Forest (LHO),0.7857,0.886
+Applicability Domain,"Low Similarity (<0.40, Out-of-Domain)",22,14,8,"RRF (RF + Vina, Cluster)",0.5893,0.6856
+Applicability Domain,"Low Similarity (<0.40, Out-of-Domain)",22,14,8,"RRF (RF + Vina, LHO)",0.6518,0.7149
+Applicability Domain,"High Similarity (>=0.40, In-Domain)",71,53,18,AutoDock Vina (Raw Affinity),0.6415,0.8276
+Applicability Domain,"High Similarity (>=0.40, In-Domain)",71,53,18,AutoDock Vina (Ligand Efficiency),0.4434,0.6791
+Applicability Domain,"High Similarity (>=0.40, In-Domain)",71,53,18,Random Forest (Cluster OOF),0.7075,0.8464
+Applicability Domain,"High Similarity (>=0.40, In-Domain)",71,53,18,Random Forest (LHO),0.4817,0.7611
+Applicability Domain,"High Similarity (>=0.40, In-Domain)",71,53,18,"RRF (RF + Vina, Cluster)",0.7254,0.8473
+Applicability Domain,"High Similarity (>=0.40, In-Domain)",71,53,18,"RRF (RF + Vina, LHO)",0.5881,0.8019
