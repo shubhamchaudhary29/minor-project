@@ -1,13 +1,13 @@
 # Experimental Benchmark Protocol: DprE1 Structure-Based Docking vs. Ligand-Based Machine Learning
 
 **Project Title**: *Does Structure-Based Docking Add Predictive Value Over Ligand-Based Machine Learning for Prioritizing DprE1 Inhibitors? A Reproducible Benchmark Under Scaffold-Split Evaluation*  
-**Protocol Version**: 1.1.1-frozen (Phase 2 Benchmark Launch Release)  
-**Date**: October 2, 2026  
-**Auditor**: Senior Computational Chemist & Research Software Engineer  
+**Protocol Version**: 1.1.2-frozen (Phase 5 Benchmark Synthesis Release)  
+**Date**: October 3, 2026  
+**Author**: Shubham Chaudhary  
 
 ---
 
-## Protocol Deviation & Remediation Log (v1.1.1)
+## Protocol Deviation & Remediation Log (v1.1.2)
 
 | Deviation ID | Component | Description of Change & Scientific Rationale |
 | :--- | :--- | :--- |
@@ -19,7 +19,10 @@
 | **DEV-06** | Metric Calculation | Primary PR-AUC and ROC-AUC are evaluated on **Pooled Out-Of-Fold (OOF)** predictions resampled via 1,000-iteration bootstrap (95% BCa CIs) to prevent single-class fold artifacts. |
 | **DEV-07** | Baseline Expansion & LHO | Added the `HydantoinDetectorClassifier` baseline and promoted **Leave-Hydantoin-Out (LHO)** as the headline generalization experiment. |
 | **DEV-08** | Warhead Terminology | Renamed covalent classification to `nitro_aromatic_warhead` (predicted covalent mechanism via FAD nitro-reduction). |
-| **DEV-09** | Receptor & Grid Coordinates | Programmatically computed exact active-site centroid from co-crystallized ligand **`Ty38c (PDB ID: 38C / CT325)`** in PDB `4P8K` Chain A: `(17.07, -20.26, 1.49)` Å with bounding box $22.0 \times 22.0 \times 22.0$ Å at 2.49 Å resolution. |
+| **DEV-09** | Docking Box & Exhaustiveness | Programmatically computed active-site centroid from co-crystallized ligand **`Ty38c (PDB ID: 38C / CT325)`** in PDB `4P8K` Chain A: `(17.07, -20.26, 1.49)` Å, box size $22.0 \times 22.0 \times 22.0$ Å. Exhaustiveness set to 16 for batch screening; Gate 2 redocking heavy-atom RMSD verified at **1.282 Å** (< 2.0 Å threshold). |
+| **DEV-10** | Integration via Rank Fusion | Employed unsupervised Reciprocal Rank Fusion (RRF $k=60$), Mean Percentile Rank (MPR), and Z-score sum rather than supervised meta-model stacking, eliminating risk of post-hoc hyperparameter leakage on the small non-covalent cohort ($N=93$). |
+| **DEV-11** | Dual Primary Metrics | Mandated simultaneous reporting of ROC-AUC alongside PR-AUC due to high active class prevalence (~72.0% in primary corpus), where the PR-AUC random baseline floor is 0.720. |
+| **DEV-12** | Headline Model Selection | Relegated LightGBM to exploratory secondary status due to gradient tree instability on small sample splits; elevated regularized Logistic Regression and Random Forest as headline models. |
 
 ---
 
