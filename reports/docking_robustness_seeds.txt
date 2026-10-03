@@ -1,0 +1,21 @@
+================================================================================
+DprE1 GATE 2 MULTI-SEED DOCKING ROBUSTNESS REPORT
+================================================================================
+Receptor:               PDB 4P8K (Chain A + rigid FAD, 2.49 Å)
+Reference Ligand:       Ty38c (PDB ID: 38C / CT325, 27 heavy atoms)
+Grid Center:            (17.07, -20.26, 1.49) Å
+Box Size:               (22.0, 22.0, 22.0) Å
+Search Exhaustiveness:  16 (per PROTOCOL.md DEV-09)
+Seeds Tested:           [42, 101, 2024]
+--------------------------------------------------------------------------------
+Random Seed  | Affinity (kcal/mol)    | RMSD (Å)         | Gate 2 Status
+--------------------------------------------------------------------------------
+42           | -8.873                 | 1.282            | PASS
+101          | -8.914                 | 1.419            | PASS
+2024         | -8.905                 | 1.365            | PASS
+--------------------------------------------------------------------------------
+Mean RMSD:              1.355 ± 0.056 Å
+Mean Binding Affinity:  -8.897 kcal/mol
+Gate 2 Threshold:       RMSD < 2.000 Å across all seeds
+Robustness Outcome:     PASS - FULLY ROBUST
+================================================================================

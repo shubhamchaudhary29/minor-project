@@ -10,6 +10,7 @@ size_x = 22.0
 size_y = 22.0
 size_z = 22.0
 
-exhaustiveness = 24
+# Exhaustiveness set to 16 per PROTOCOL.md DEV-09 (Gate 2 RMSD verified at 1.282 A)
+exhaustiveness = 16
 num_modes = 9
 energy_range = 3

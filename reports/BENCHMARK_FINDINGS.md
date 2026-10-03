@@ -26,13 +26,14 @@ Under rigorous, leak-free evaluation on the curated non-covalent biochemical cor
    - The trivial `HydantoinDetectorClassifier` baseline—a 1-rule heuristic checking for the hydantoin core (`O=C1NC(=O)NC1`) without any training—achieves an **ROC-AUC of 0.660** [0.541, 0.758].
    - In comparison, standalone AutoDock Vina achieves an **ROC-AUC of only 0.610** [0.463, 0.746]. A simple 2D substructure lookup outperforms full 3D physics-based molecular docking due to extreme chemotype prevalence bias in public chemical repositories.
 
-3. **Linear Regularity Overcomes Cross-Chemotype Generalization Collapse**:
+3. **Observation on Linear Model Empirical Resilience in LHO (Small-Sample Finding)**:
    - In cross-chemotype transfer (Track C: Leave-Hydantoin-Out), Random Forest suffers an out-of-scaffold generalization collapse to **ROC-AUC = 0.527** [0.402, 0.646] (random floor: 0.500).
-   - In contrast, $L_2$-regularized **Logistic Regression** generalizes effectively across chemotype boundaries, achieving **ROC-AUC = 0.703** [0.563, 0.824] and **PR-AUC = 0.828** [0.719, 0.923] on ECFP4 count fingerprints. Linear models with strong regularization retain predictive utility on unseen scaffolds without requiring 3D structural docking scores.
+   - In contrast, $L_2$-regularized **Logistic Regression** achieved an empirical **ROC-AUC = 0.703** [0.563, 0.824] and **PR-AUC = 0.828** [0.719, 0.923] on ECFP4 count fingerprints.
+   - *Statistical Restraint & Overlap*: However, this finding must be interpreted with caution. LR's 95% CI ([0.563, 0.824]) substantially overlaps with RF's ([0.402, 0.646]), LR scored below RF in Track B (0.677 vs 0.700), and its LHO performance is statistically indistinguishable from the naive hydantoin detector (0.660). Mechanistic explanations regarding continuous linear hyperplanes versus orthogonal decision tree splits remain exploratory hypotheses rather than definitive proofs on this small sample size ($N=93$).
 
 4. **Post-Hoc Size-Bias Explains Molecular Weight Subgroups**:
-   - An exploratory post-hoc subgroup analysis indicates that raw Vina docking scores correlate strongly with molecular weight ($r = -0.437$ with affinity / $+0.437$ with binding magnitude, $p = 1.21 \times 10^{-5}$), despite molecular weight having zero correlation with true biological activity ($r = -0.017, p = 0.869$).
-   - Consequently, raw docking scores collapse on compounds with $\text{MW} \ge 400$ Da (ROC-AUC = 0.414) due to size-driven false positives, a technical artifact partially remediated post-hoc by Ligand Efficiency ($\text{LE} = -\Delta G / N_{\text{heavy}}$, ROC-AUC = 0.657).
+   - An exploratory post-hoc subgroup analysis indicates that raw Vina docking scores correlate strongly with molecular weight ($r = -0.437, p = 1.21 \times 10^{-5}$), showing that higher molecular weight correlates with more negative (more favorable) $\Delta G$ scores purely due to non-specific surface burial.
+   - In contrast, molecular weight has zero true correlation with biological activity ($r = -0.017, p = 0.869$). Consequently, raw docking scores collapse on compounds with $\text{MW} \ge 400$ Da (ROC-AUC = 0.414) due to size-driven false positives, a technical artifact partially remediated post-hoc by Ligand Efficiency ($\text{LE} = -\Delta G / N_{\text{heavy}}$, ROC-AUC = 0.657).
 
 ---
 
@@ -75,15 +76,15 @@ All metrics are evaluated on the non-covalent cohort ($N=93$: 67 active, 26 inac
 
 ## 3. Key Mechanistic Findings & Methodological Nuances
 
-### 3.1 The Scaffold Inversion: Tree Ensembles Collapse, Linear Models Generalize
+### 3.1 Observation on Model Behavior Under Scaffold Inversion
 - In Random 5-Fold CV (Track A), Random Forest achieves an artificially elevated **ROC-AUC = 0.799** and **PR-AUC = 0.923** due to analogue leakage across structurally similar congeners.
-- In Cluster 5-Fold CV (Track B), RF drops to **0.700**, and in Leave-Hydantoin-Out (Track C), RF collapses completely to **0.527**, unable to map non-hydantoin decision trees onto hydantoin features.
-- In contrast, regularized **Logistic Regression** maintains strong generalization (**ROC-AUC = 0.703** in Track C, **0.704** in Non-Hydantoins). By learning smooth, additive feature weights across conserved pharmacophores rather than rigid hierarchical splits, linear models generalize across distinct chemotype families far better than unpruned tree ensembles.
+- In Cluster 5-Fold CV (Track B), RF drops to **0.700**, and in Leave-Hydantoin-Out (Track C), RF collapses to **0.527**, unable to map non-hydantoin decision trees onto hydantoin features.
+- In contrast, regularized **Logistic Regression** showed greater empirical resilience (**ROC-AUC = 0.703** in Track C, **0.704** in Non-Hydantoins). While this resilience suggests that smooth, additive feature weights may be less brittle than unpruned tree ensembles when extrapolating across chemotypes, the wide confidence intervals ([0.563, 0.824]) remind us that this remains an exploratory observation in a small dataset.
 
 ### 3.2 Exploratory Subgroup Analysis: Molecular Weight Size-Bias
 - **Empirical Correlation**:
-  - Pearson correlation between Molecular Weight and raw Vina affinity: **$r = -0.437$ ($p = 1.21 \times 10^{-5}$)**.
-  - Point-biserial correlation between true Bioactivity Label and Molecular Weight: **$r = -0.017$ ($p = 0.869$)**.
+  - Pearson correlation between Molecular Weight and raw Vina affinity: **$r = -0.437$ ($p = 1.21 \times 10^{-5}$)**. More negative scores reflect stronger predicted binding affinity, demonstrating a clear empirical bias toward heavier ligands.
+  - Point-biserial correlation between true Bioactivity Label and Molecular Weight: **$r = -0.017$ ($p = 0.869$)**, indicating zero biological correlation.
 - **Post-Hoc Stratification**:
   * **Low MW (< 400 Da, $N=35$)**: AutoDock Vina achieves an exploratory **ROC-AUC = 0.780** [PR-AUC = 0.884], outperforming Random Forest (0.640).
   * **High MW ($\ge 400$ Da, $N=58$)**: AutoDock Vina collapses to **ROC-AUC = 0.414** due to size-driven false positives (e.g., `CHEMBL4760909`: inactive, MW 482.6 Da, assigned top score $-10.64$ kcal/mol).
@@ -114,11 +115,11 @@ When defending this benchmark before academic examiners, the following core meth
 
 ## 5. Artifact & Repository Index
 
-- **Master Dataset**: [`data/processed/master_predictions_phase5.csv`](file:///home/gigachad/minor_project/data/processed/master_predictions_phase5.csv) ($N=93$ aligned compounds with ML probabilities, Vina scores, and hybrid ranks).
-- **Master Metrics**: [`reports/phase5_benchmark_master.csv`](file:///home/gigachad/minor_project/reports/phase5_benchmark_master.csv) (1,000-sample bootstrap CIs).
-- **Ablation Tables**: [`reports/ablation_results.csv`](file:///home/gigachad/minor_project/reports/ablation_results.csv) (MW and domain stratification).
-- **Discordance Cases**: [`reports/discordance_analysis.csv`](file:///home/gigachad/minor_project/reports/discordance_analysis.csv) (Detailed failure mode analysis).
+- **Master Dataset**: [`data/processed/master_predictions_phase5.csv`](../data/processed/master_predictions_phase5.csv) ($N=93$ aligned compounds with ML probabilities, Vina scores, and hybrid ranks).
+- **Master Metrics**: [`reports/phase5_benchmark_master.csv`](phase5_benchmark_master.csv) (1,000-sample bootstrap CIs).
+- **Ablation Tables**: [`reports/ablation_results.csv`](ablation_results.csv) (MW and domain stratification).
+- **Discordance Cases**: [`reports/discordance_analysis.csv`](discordance_analysis.csv) (Detailed failure mode analysis).
 - **Publication Figures (300 DPI)**:
-  * [`reports/figures/roc_pr_master_curves.png`](file:///home/gigachad/minor_project/reports/figures/roc_pr_master_curves.png)
-  * [`reports/figures/scaffold_inversion_barplot.png`](file:///home/gigachad/minor_project/reports/figures/scaffold_inversion_barplot.png)
-  * [`reports/figures/mw_ablation_effect.png`](file:///home/gigachad/minor_project/reports/figures/mw_ablation_effect.png)
+  * [`reports/figures/roc_pr_master_curves.png`](figures/roc_pr_master_curves.png)
+  * [`reports/figures/scaffold_inversion_barplot.png`](figures/scaffold_inversion_barplot.png)
+  * [`reports/figures/mw_ablation_effect.png`](figures/mw_ablation_effect.png)

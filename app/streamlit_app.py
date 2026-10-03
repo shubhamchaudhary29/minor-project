@@ -9,9 +9,11 @@ An interactive Streamlit application demonstrating:
 1. Real-time SMILES validation and 2D chemical structure rendering via RDKit.
 2. Physicochemical property profiling (MW, LogP, HBD, HBA, TPSA, RotB) and Lipinski filter.
 3. Automated sentry for covalent nitro-aromatic warheads (targeting Cys387 via FAD reduction).
-4. Machine Learning inferences from calibrated Logistic Regression and Random Forest models.
+4. Machine Learning inferences:
+   - For benchmark compounds: displays precomputed, leak-free Out-Of-Fold (OOF) cross-validation predictions.
+   - For novel compounds: displays live predictions from calibrated models fitted on the full dataset.
 5. Applicability domain monitoring (Tanimoto similarity to ChEMBL3804751 training actives).
-6. Precomputed AutoDock Vina docking score and Ligand Efficiency retrieval for benchmark compounds.
+6. Precomputed AutoDock Vina docking score, true percentile rank, and Ligand Efficiency retrieval.
 7. Executive benchmark synthesis report and model comparison matrix.
 """
 
@@ -215,6 +217,7 @@ def main():
     - **Target**: DprE1 (`CHEMBL3804751`)
     - **Receptor**: PDB `4P8K` (Chain A + FAD)
     - **Docking Box**: `(17.07, -20.26, 1.49)` Å
+    - **Exhaustiveness**: 16 (DEV-09)
     - **Gate 2 Pose Validation**: RMSD = 1.282 Å (< 2.0 Å)
     - **Evaluation**: 1,000 Bootstrap CIs on Pooled OOF
     """)
@@ -224,6 +227,18 @@ def main():
 
     # Parse SMILES
     mol = Chem.MolFromSmiles(query_smiles) if query_smiles else None
+
+    # Check if entered SMILES matches benchmark master dataset
+    matched_row = None
+    if mol is not None and not df_master.empty:
+        try:
+            canon_q = Chem.CanonSmiles(query_smiles)
+            for _, r in df_master.iterrows():
+                if Chem.CanonSmiles(r["canonical_smiles"]) == canon_q:
+                    matched_row = r
+                    break
+        except Exception:
+            pass
 
     with col_left:
         st.subheader("1. Structure & Physicochemical Profile")
@@ -289,54 +304,84 @@ def main():
         else:
             st.success(f"✅ **IN-DOMAIN**: Max Tanimoto similarity to known active is **{best_sim:.3f}** (Nearest: `{best_match['chembl_id']}`).")
 
-        # 4. Machine Learning Inference
-        # Compute count vector
-        fp_count = fp_gen.GetCountFingerprint(mol)
-        arr_cnt = np.zeros(2048, dtype=np.float32)
-        for bit_id, val in fp_count.GetNonzeroElements().items():
-            arr_cnt[bit_id] = val
+        # 4. Machine Learning Inference Handling
+        if matched_row is not None:
+            st.info("ℹ️ **Benchmark Molecule**: Showing precomputed, leak-free Out-Of-Fold (OOF) cross-validation predictions.")
+            p_lr_cluster = float(matched_row["prob_lr_cluster"])
+            p_rf_cluster = float(matched_row["prob_rf_cluster"])
+            p_lr_lho = float(matched_row["prob_lr_lho"])
+            p_rf_lho = float(matched_row["prob_rf_lho"])
 
-        p_lr = float(lr_model.predict_proba([arr_cnt])[0, 1])
-        p_rf = float(rf_model.predict_proba([arr_cnt])[0, 1])
+            st.markdown("#### 🤖 Precomputed Out-Of-Fold (OOF) Inferences")
+            tab_cluster, tab_lho = st.tabs(["Track B: Cluster 5-Fold CV (Series-Disjoint)", "Track C: Leave-Hydantoin-Out (Cross-Chemotype)"])
 
-        st.markdown("#### 🤖 Ligand-Based Machine Learning Inferences")
-        pcol1, pcol2 = st.columns(2)
-        with pcol1:
-            st.metric("Logistic Regression P(Active)", f"{p_lr:.1%}")
-            st.progress(p_lr)
-            st.caption("Regularized L2 Linear Model (Benchmark Headline on LHO: ROC-AUC = 0.703)")
+            with tab_cluster:
+                pcol1, pcol2 = st.columns(2)
+                with pcol1:
+                    st.metric("Logistic Regression P(Active)", f"{p_lr_cluster:.1%}")
+                    st.progress(p_lr_cluster)
+                    st.caption("Series-Disjoint OOF | Benchmark: ROC-AUC = 0.677")
+                with pcol2:
+                    st.metric("Random Forest P(Active)", f"{p_rf_cluster:.1%}")
+                    st.progress(p_rf_cluster)
+                    st.caption("Series-Disjoint OOF | Benchmark: ROC-AUC = 0.700")
 
-        with pcol2:
-            st.metric("Random Forest P(Active)", f"{p_rf:.1%}")
-            st.progress(p_rf)
-            st.caption("300-Tree Subsampled Ensemble (Benchmark Headline on Cluster CV: ROC-AUC = 0.700)")
+            with tab_lho:
+                lcol1, lcol2 = st.columns(2)
+                with lcol1:
+                    st.metric("Logistic Regression P(Active)", f"{p_lr_lho:.1%}")
+                    st.progress(p_lr_lho)
+                    st.caption("Cross-Chemotype OOF | Benchmark: ROC-AUC = 0.703")
+                with lcol2:
+                    st.metric("Random Forest P(Active)", f"{p_rf_lho:.1%}")
+                    st.progress(p_rf_lho)
+                    st.caption("Cross-Chemotype OOF | Benchmark: ROC-AUC = 0.527")
+
+        else:
+            st.warning("⚠️ **Novel Structure**: Showing live predictions from models fitted on the full benchmark dataset.")
+            # Compute live count vector
+            fp_count = fp_gen.GetCountFingerprint(mol)
+            arr_cnt = np.zeros(2048, dtype=np.float32)
+            for bit_id, val in fp_count.GetNonzeroElements().items():
+                arr_cnt[bit_id] = val
+
+            p_lr = float(lr_model.predict_proba([arr_cnt])[0, 1])
+            p_rf = float(rf_model.predict_proba([arr_cnt])[0, 1])
+
+            st.markdown("#### 🤖 Live Ligand-Based Machine Learning Inferences")
+            pcol1, pcol2 = st.columns(2)
+            with pcol1:
+                st.metric("Logistic Regression P(Active)", f"{p_lr:.1%}")
+                st.progress(p_lr)
+                st.caption("Regularized L2 Linear Model (Benchmark on LHO: ROC-AUC = 0.703)")
+
+            with pcol2:
+                st.metric("Random Forest P(Active)", f"{p_rf:.1%}")
+                st.progress(p_rf)
+                st.caption("300-Tree Subsampled Ensemble (Benchmark on Cluster CV: ROC-AUC = 0.700)")
 
     # Section 3: Structure-Based Docking Vault
     st.markdown("---")
     st.subheader("3. Structure-Based Docking Vault (AutoDock Vina & Ligand Efficiency)")
 
-    # Match in master predictions
-    matched_row = None
-    if not df_master.empty:
-        canon_q = Chem.CanonSmiles(query_smiles)
-        for _, r in df_master.iterrows():
-            try:
-                if Chem.CanonSmiles(r["canonical_smiles"]) == canon_q:
-                    matched_row = r
-                    break
-            except Exception:
-                continue
-
     if matched_row is not None:
         st.success(f"🎯 **Benchmark Compound Identified**: `{matched_row['molecule_chembl_ids']}` (Experimental Assay Label: **{matched_row['label']}**)")
-        dcol1, dcol2, dcol3, dcol4 = st.columns(4)
-        vina_aff = matched_row["vina_affinity"]
-        dcol1.metric("Vina Affinity (ΔG)", f"{vina_aff:.2f} kcal/mol")
-        dcol2.metric("Vina Percentile Rank", f"{matched_row['vina_score'].rank(pct=True) if hasattr(matched_row['vina_score'], 'rank') else 'Top Tier'}")
-        dcol3.metric("Ligand Efficiency (LE)", f"{matched_row['ligand_efficiency']:.3f} kcal/mol/HA")
-        dcol4.metric("RRF Hybrid Rank", f"{matched_row['rrf_rf_vina_cluster']:.4f}")
 
-        st.caption(f"Evaluated in PDB `4P8K` (Chain A + rigid FAD, 2.49 Å). Heavy atoms: {n_heavy} | Cluster Fold: {matched_row['fold']}")
+        vina_val = float(matched_row['vina_score'].iloc[0] if hasattr(matched_row['vina_score'], 'iloc') else matched_row['vina_score'])
+        vina_aff = float(matched_row['vina_affinity'].iloc[0] if hasattr(matched_row['vina_affinity'], 'iloc') else matched_row['vina_affinity'])
+
+        # Calculate genuine percentile rank against benchmark corpus (N=93)
+        percentile = float((df_master['vina_score'] < vina_val).mean() * 100.0)
+        top_pct = 100.0 - percentile
+        vina_rank_str = f"Top {top_pct:.1f}% ({percentile:.1f}th Pct)"
+
+        dcol1, dcol2, dcol3, dcol4 = st.columns(4)
+        dcol1.metric("Vina Affinity (ΔG)", f"{vina_aff:.2f} kcal/mol")
+        dcol2.metric("Vina Percentile Rank", vina_rank_str)
+        dcol3.metric("Ligand Efficiency (LE)", f"{float(matched_row['ligand_efficiency']):.3f} kcal/mol/HA")
+        dcol4.metric("RRF Hybrid Rank", f"{float(matched_row['rrf_rf_vina_cluster']):.4f}")
+
+        st.caption(f"Evaluated in PDB `4P8K` (Chain A + rigid FAD, 2.49 Å, exhaustiveness=16). Heavy atoms: {n_heavy} | Cluster Fold: {matched_row['fold']}")
     else:
         st.info("""
         ℹ️ **Precomputed Docking Score Not Available in Vault**:
@@ -348,7 +393,7 @@ def main():
     # Section 4: Master Benchmark Results Matrix Tab
     st.markdown("---")
     with st.expander("📊 View Master Benchmark Synthesis Matrix & viva Defense Findings", expanded=False):
-        st.markdown("""
+        st.markdown(r"""
         ### Empirical Benchmark Performance Summary (1,000 Bootstrap 95% CIs)
         *Evaluated on N=93 Non-Covalent DprE1 Inhibitors (ChEMBL3804751)*
         """)
@@ -370,12 +415,12 @@ def main():
         ])
         st.dataframe(summary_table, use_container_width=True)
 
-        st.markdown("""
+        st.markdown(r"""
         **Core Scientific Takeaways**:
-        1. **Null Result**: At $N=93$ non-covalent inhibitors, hybrid rank fusion does not achieve statistically significant predictive gains over ML alone ($\Delta\\text{ROC}$ 95% CIs cross zero).
+        1. **Null Result**: At $N=93$ non-covalent inhibitors, hybrid rank fusion does not achieve statistically significant predictive gains over ML alone ($\Delta\text{ROC}$ 95% CIs cross zero).
         2. **Heuristic Strength**: A simple hydantoin substructure detector (ROC-AUC = 0.660) beats AutoDock Vina (0.610).
-        3. **Linear Robustness**: Logistic Regression (0.703) outperforms Random Forest (0.527) under scaffold inversion (Leave-Hydantoin-Out).
-        4. **Size-Bias Confounder**: Vina raw affinity correlates with MW ($r = -0.437, p = 1.21 \\times 10^{-5}$); Ligand Efficiency correction mitigates high-MW false positives.
+        3. **Observation on Linear Resilience**: Logistic Regression (0.703) showed empirical resilience under scaffold inversion (Leave-Hydantoin-Out), though wide CIs overlap with RF.
+        4. **Size-Bias Confounder**: Vina raw affinity correlates with MW ($r = -0.437, p = 1.21 \times 10^{-5}$); Ligand Efficiency correction mitigates high-MW false positives.
         """)
 
     # Bottom Disclaimer Banner

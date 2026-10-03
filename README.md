@@ -63,7 +63,7 @@ All metrics are evaluated on the strictly audited non-covalent cohort ($N=93$: 6
 ## 3. Repository Architecture
 
 ```text
-minor_project/
+dpre1/
 ├── app/
 │   └── streamlit_app.py                 # Interactive Streamlit screening & triage application
 ├── data/
