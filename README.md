@@ -5,9 +5,11 @@
 [![AutoDock Vina](https://img.shields.io/badge/AutoDock_Vina-1.2.5-red.svg)](https://vina.scripps.edu/)
 [![ChEMBL](https://img.shields.io/badge/ChEMBL-ChEMBL__37-orange.svg)](https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL3804751/)
 [![License: CC BY-SA 3.0](https://img.shields.io/badge/Data_License-CC_BY--SA_3.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/3.0/)
-[![Status: Phase 5 Complete | Phase 6 App Ready](https://img.shields.io/badge/Benchmark_Status-Phase_5_Complete_%7C_Phase_6_App_Ready-brightgreen.svg)]()
+[![Status: Phase 7 Complete | Viva Ready](https://img.shields.io/badge/Benchmark_Status-Phase_7_Complete_%7C_Viva_Ready-brightgreen.svg)]()
 
 **Author**: Shubham Chaudhary  
+**Department**: University School of Automation and Robotics (USAR), GGSIPU, Delhi  
+**Degree**: Bachelor of Technology, Minor Project (Academic Year 2025–2026)  
 **Repository**: [shubhamchaudhary29/minor-project](https://github.com/shubhamchaudhary29/minor-project.git)  
 
 > **Research Question**: *Does Structure-Based Docking Add Predictive Value Over Ligand-Based Machine Learning for Prioritizing DprE1 Inhibitors? A Reproducible Benchmark Under Scaffold-Split Evaluation.*
@@ -94,15 +96,19 @@ dpre1/
 │   │   ├── applicability_domain_decay.png
 │   │   ├── top_ecfp4_substructures.png
 │   │   └── vina_score_vs_mw.png
+│   ├── DprE1_Minor_Project_Report.md    # Comprehensive academic thesis dissertation (10 chapters)
 │   ├── BENCHMARK_FINDINGS.md            # Frozen scientific synthesis & viva defense report
 │   ├── phase5_benchmark_master.csv      # Master evaluation table with 1,000 bootstrap CIs
 │   ├── ablation_results.csv             # MW and domain stratification results
 │   ├── discordance_analysis.csv         # Compound-level quadrant discordance case studies
+│   ├── discordance_interactions.csv     # Residue-level protein-ligand contact analysis (PDB 4P8K)
+│   ├── interaction_analysis_summary.txt # Biophysical contact summary across discordance cohorts
 │   ├── gate2_redocking.txt              # Gate 2 crystallographic validation (RMSD = 1.282 Å)
 │   ├── covalent_audit.csv               # Mechanism breakdown (covalent vs non-covalent)
 │   ├── hydantoin_cluster_analysis.json  # Cluster dominance and partition report
 │   └── DprE1_Literature_Audit_verified.csv # 26 CrossRef-verified DOIs
 ├── src/
+│   ├── analyze_interactions.py          # Residue contact analysis engine (Chain A + FAD 501)
 │   ├── integrate.py                     # Multi-modal fusion engine (RRF, MPR, Z-score)
 │   ├── evaluate_integration.py          # Master benchmark evaluation & 1,000 bootstrap CIs
 │   ├── ablation_analysis.py             # MW stratification & quadrant discordance analysis

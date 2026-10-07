@@ -361,6 +361,8 @@ def main():
             st.session_state["current_smiles"] = mutate_strip_substituent(st.session_state["current_smiles"])
             st.rerun()
 
+    st.sidebar.caption("Note: Adding heavy atoms systematically improves raw Vina score due to surface contact accumulation (r = -0.437). Check Ligand Efficiency (LE) to evaluate whether binding density actually improved.")
+
     # Editable Text Area for current working SMILES
     def handle_smiles_edit():
         st.session_state["current_smiles"] = st.session_state["smiles_input"]
@@ -457,7 +459,7 @@ def main():
         # Chemotype Detection
         is_hyd = mol.HasSubstructMatch(_PAT_HYDANTOIN)
         if is_hyd:
-            st.warning("🏷️ **Hydantoin Core Identified**: Matches `O=C1NC(=O)NC1`. Belongs to dominant literature chemotype cluster (Baseline 1 Score: 0.843).")
+            st.warning("🏷️ **Hydantoin Core Identified**: Matches `O=C1NC(=O)NC1`. Belongs to dominant literature chemotype cluster (Baseline 1 Score: 0.660).")
 
         # Applicability Domain
         best_sim, best_match = compute_ad_similarity(mol, fp_gen, actives_info)
@@ -549,26 +551,32 @@ def main():
                     except Exception as e:
                         st.error(f"Docking execution failed: {e}")
 
+        st.caption("⚙️ **Docking Parameters**: Live Docking runs at Exhaustiveness = 8 (~15s evaluation). Benchmark vault distribution was evaluated at Exhaustiveness = 16 per PROTOCOL.md DEV-09.")
+
     with dcol_right:
         st.markdown("#### ⚖️ Plain-English Prioritization Verdict")
 
+        # Empirical Vina Quantiles
+        vina_q25 = float(df_master["vina_affinity"].quantile(0.25))
+        vina_med = float(df_master["vina_affinity"].median())
+
         # 2D ML Classification
         p_avg = (p_lr_display + p_rf_display) / 2.0
-        if p_avg >= 0.65:
+        if p_avg >= 0.60:
             ml_verdict = ("Likely Active", "#28a745")
-        elif p_avg >= 0.35:
-            ml_verdict = ("Uncertain / Boundary", "#ffc107")
+        elif p_avg >= 0.45:
+            ml_verdict = ("Borderline / Uncertain", "#ffc107")
         else:
             ml_verdict = ("Likely Inactive", "#dc3545")
 
         # 3D Docking Classification
         if current_docking_affinity is not None:
-            if current_docking_affinity <= -8.5:
+            if current_docking_affinity <= vina_q25:
                 dock_verdict = ("Strong Pocket Fit", "#28a745")
-            elif current_docking_affinity <= -7.5:
-                dock_verdict = ("Moderate Fit", "#ffc107")
+            elif current_docking_affinity <= vina_med:
+                dock_verdict = ("Moderate Pocket Fit", "#ffc107")
             else:
-                dock_verdict = ("Weak Fit / Steric Clash", "#dc3545")
+                dock_verdict = ("Weak Pocket Fit / Shallow Placement", "#dc3545")
         else:
             dock_verdict = ("Pending Docking", "#6c757d")
 
@@ -580,15 +588,15 @@ def main():
             consensus_text = "⏳ **Awaiting 3D Docking**: Click the button on the left to compute live 3D binding affinity and establish the consensus diagnosis."
             box_bg = "#e2e3e5"
         elif ml_verdict[0] == "Likely Active" and dock_verdict[0] == "Strong Pocket Fit":
-            consensus_text = "✅ **Consensus Hit (Strong Agreement)**: Both 2D circular subgraphs and 3D pocket shape prioritize this compound. High-priority lead candidate."
+            consensus_text = "✅ **Dual-Method Agreement**: Both 2D ML and 3D docking rank this molecule above benchmark medians (Retrospective prioritization, not confirmed biological activity)."
             box_bg = "#d4edda"
-        elif ml_verdict[0] == "Likely Inactive" and dock_verdict[0] == "Weak Fit / Steric Clash":
+        elif ml_verdict[0] == "Likely Inactive" and dock_verdict[0] == "Weak Pocket Fit / Shallow Placement":
             consensus_text = "❌ **Consensus Inactive (Strong Agreement)**: Both 2D topological features and 3D steric scoring reject this compound. Low prioritization."
             box_bg = "#f8d7da"
         elif ml_verdict[0] == "Likely Inactive" and dock_verdict[0] == "Strong Pocket Fit":
             consensus_text = "🔍 **Discordant: Docking Rescues ML (Disagreement)**: 2D ML flags this as inactive due to lack of training congeners (novel scaffold), but 3D pocket docking detects favorable hydrophobic/steric complementarity."
             box_bg = "#fff3cd"
-        elif ml_verdict[0] == "Likely Active" and dock_verdict[0] == "Weak Fit / Steric Clash":
+        elif ml_verdict[0] == "Likely Active" and dock_verdict[0] == "Weak Pocket Fit / Shallow Placement":
             consensus_text = "⚠️ **Discordant: ML Rescues Docking (Disagreement)**: 2D ML detects active pharmacophores, but rigid-pocket docking penalizes the ligand due to steric clashes with rigid sidechains (Lys418/Tyr314)."
             box_bg = "#fff3cd"
         else:
@@ -637,8 +645,9 @@ def main():
     )
 
     # Quadrant threshold lines
+    vina_med_val = float(df_master["vina_affinity"].median())
     ax.axvline(0.50, color="#888888", linestyle="--", linewidth=1.0)
-    ax.axhline(-8.50, color="#888888", linestyle="--", linewidth=1.0)
+    ax.axhline(vina_med_val, color="#888888", linestyle="--", linewidth=1.0)
 
     # Quadrant text annotations
     ax.text(0.98, -10.4, "Consensus Hits\n(High ML, Strong Docking)", ha="right", va="top", fontsize=8.5, color="#1b5e20", fontweight="bold", backgroundcolor="#ffffffbb")

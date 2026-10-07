@@ -1,0 +1,93 @@
+================================================================================
+DPRE1 BENCHMARK: RESIDUE-LEVEL INTERACTION & DISCORDANCE SYNTHESIS
+Author: Shubham Chaudhary | PDB 4P8K (Chain A + rigid FAD)
+================================================================================
+
+EXECUTIVE OVERVIEW:
+This structural contact analysis quantifies why 2D ligand-based machine learning
+(Random Forest on ECFP4 counts) and 3D physical molecular docking (AutoDock Vina)
+diverge on 15 key benchmark cases under the Leave-Hydantoin-Out (LHO) evaluation split.
+
+All poses were evaluated in the rigid crystallographic cavity of Mycobacterium
+tuberculosis DprE1 (PDB 4P8K, Chain A + rigid FAD 501 cofactor). Heavy-atom contacts
+were calculated using a standard 4.0 Angstrom distance threshold.
+
+--------------------------------------------------------------------------------
+AGGREGATE METRICS BY DISCORDANCE COHORT (MEANS):
+--------------------------------------------------------------------------------
+1. Docking Rescues ML (N=5 Actives):
+   - Mean Molecular Weight:          413.0 Da
+   - Mean Heavy Atoms:               29.4
+   - Mean Vina Affinity:             -9.28 kcal/mol
+   - Mean Ligand Efficiency (LE):    0.316 kcal/mol/HA
+   - Mean Total Pairwise Contacts:   69.8
+   - Mean Contacts to FAD Cofactor:  17.4
+   - Mean Contacts to Cys387:        3.0
+   - Mean Distance to FAD Ring:      3.26 A
+   - Mean Distance to Cys387 SG:     3.56 A
+   - Mean Contact Residues:          14.8
+
+2. ML Rescues Docking (N=5 Actives):
+   - Mean Molecular Weight:          403.0 Da
+   - Mean Heavy Atoms:               27.8
+   - Mean Vina Affinity:             -8.61 kcal/mol
+   - Mean Ligand Efficiency (LE):    0.311 kcal/mol/HA
+   - Mean Total Pairwise Contacts:   68.2
+   - Mean Contacts to FAD Cofactor:  13.6
+   - Mean Contacts to Cys387:        2.6
+   - Mean Distance to FAD Ring:      3.30 A
+   - Mean Distance to Cys387 SG:     3.81 A
+   - Mean Contact Residues:          15.4
+
+3. Docking False Positives / Size-Bias (N=5 Inactives):
+   - Mean Molecular Weight:          476.4 Da
+   - Mean Heavy Atoms:               33.0
+   - Mean Vina Affinity:             -9.79 kcal/mol
+   - Mean Ligand Efficiency (LE):    0.298 kcal/mol/HA
+   - Mean Total Pairwise Contacts:   72.2
+   - Mean Contacts to FAD Cofactor:  14.0
+   - Mean Contacts to Cys387:        3.0
+   - Mean Distance to FAD Ring:      3.14 A
+   - Mean Distance to Cys387 SG:     3.35 A
+   - Mean Contact Residues:          16.8
+
+--------------------------------------------------------------------------------
+BIOPHYSICAL & METHODOLOGICAL INSIGHTS:
+--------------------------------------------------------------------------------
+1. THE PHENOMENON OF DOCKING RESCUE:
+   When 2D Machine Learning models are evaluated under strict cross-series or
+   scaffold-holdout splits (LHO), decision-tree based models fail because test
+   molecules possess circular topological subgraphs never encountered in training.
+   However, 3D molecular docking directly evaluates spatial, electrostatic, and van
+   der Waals complementarity against the physical receptor structure. Compounds like
+   CHEMBL4459122 (-10.03 kcal/mol) and CHEMBL4552550 (-9.43 kcal/mol) exhibit dense,
+   favorable interactions directly against the FAD isoalloxazine ring (23 contacts,
+   min distance 3.20 A) and the catalytic Cys387 thiol (4 contacts, min distance 3.50 A).
+   This demonstrates docking's intrinsic ability to generalize across novel scaffolds
+   when active-site geometry is conserved.
+
+2. THE PHENOMENON OF ML RESCUE:
+   Conversely, true actives such as CHEMBL3262462 and CHEMBL5197700 are prioritized
+   by 2D ML (P(active) = 0.616 - 0.751) because they share core pharmacophoric features
+   with known inhibitors. In rigid crystallographic docking, these smaller compounds
+   (MW ~375-415 Da) generate fewer total pairwise contacts (mean 69.0 vs 72.2 in large
+   inactives) and dock into slightly suboptimal pocket sub-regions, resulting in
+   mediocre Vina scores (-8.25 to -8.89 kcal/mol) that place them in the bottom half of
+   the virtual screen. Here, ligand-based ML rescues biologically active molecules that
+   rigid-receptor docking would discard as false negatives.
+
+3. DOCKING SIZE-BIAS & DECEPTIVE BINDING ENERGIES:
+   The most profound failure mode of physical scoring is the non-specific accumulation
+   of hydrophobic and van der Waals contacts by large molecules. The five docking
+   false positives are verified inactives characterized by high molecular weight
+   (mean 476.4 Da, up to 499.5 Da) and high heavy atom counts (mean 33.0). By sheer
+   volume, they sprawl across the DprE1 binding cavity, contacting an average of 16.8
+   residues and amassing 72.2 pairwise contacts, including 14.0 contacts to FAD.
+   This drives artificial AutoDock Vina affinities between -9.49 and -10.64 kcal/mol
+   (placing them in the top 10% of all docked compounds). However, their mean Ligand
+   Efficiency is markedly lower (0.298 kcal/mol/HA vs 0.316 in true actives).
+   This explains the empirical correlation between molecular weight and Vina affinity
+   (r = -0.437) and reinforces why size normalization (Ligand Efficiency) is critical
+   in structure-based virtual screening.
+
+================================================================================
