@@ -29,3 +29,6 @@ venv/
 # Operating System
 .DS_Store
 Thumbs.db
+
+# Temporary Docking Outputs
+docking/outputs/temp_query.pdbqt
